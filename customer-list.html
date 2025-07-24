@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客户管理 - 潘杰</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+        
+        .customer-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .customer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .status-pending {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+        
+        .status-converted {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .search-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn {
+            background: #2c5aa0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: #1e3f73;
+        }
+        
+        .secondary-btn {
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .secondary-btn:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100">
+    <div class="max-w-md mx-auto bg-white min-h-screen">
+        <!-- 头部 -->
+        <div class="flex items-center justify-between p-4 bg-white border-b">
+            <div class="flex items-center">
+                <button onclick="history.back()" class="mr-3">
+                    <i class="fas fa-arrow-left text-gray-600"></i>
+                </button>
+                <h1 class="text-lg font-medium text-gray-800">客户管理</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="refreshData()" class="text-gray-600">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button onclick="exportCustomers()" class="text-gray-600">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 搜索栏 -->
+        <div class="p-4">
+            <div class="search-bar">
+                <div class="flex items-center">
+                    <i class="fas fa-search text-gray-400 mr-3"></i>
+                    <input 
+                        type="text" 
+                        placeholder="搜索客户姓名、电话或公司..." 
+                        class="flex-1 outline-none text-sm"
+                        id="searchInput"
+                        oninput="searchCustomers()"
+                    >
+                </div>
+            </div>
+        </div>
+        
+        <!-- 统计概览 -->
+        <div class="px-4 mb-4">
+            <div class="grid grid-cols-4 gap-3">
+                <div class="bg-white rounded-lg p-3 text-center">
+                    <div class="text-blue-600 font-bold text-lg">156</div>
+                    <div class="text-gray-500 text-xs">总客户</div>
+                </div>
+                <div class="bg-white rounded-lg p-3 text-center">
+                    <div class="text-green-600 font-bold text-lg">28</div>
+                    <div class="text-gray-500 text-xs">今日新增</div>
+                </div>
+                <div class="bg-white rounded-lg p-3 text-center">
+                    <div class="text-orange-600 font-bold text-lg">89</div>
+                    <div class="text-gray-500 text-xs">待跟进</div>
+                </div>
+                <div class="bg-white rounded-lg p-3 text-center">
+                    <div class="text-red-600 font-bold text-lg">12</div>
+                    <div class="text-gray-500 text-xs">已成交</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 客户列表 -->
+        <div class="px-4">
+            <div id="customerList">
+                <!-- 客户数据将通过JavaScript动态加载 -->
+            </div>
+        </div>
+        
+        <!-- 加载更多 -->
+        <div class="px-4 pb-4">
+            <button class="w-full bg-gray-100 text-gray-600 py-3 rounded-lg" onclick="loadMoreCustomers()">
+                <i class="fas fa-plus mr-2"></i>加载更多
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // 模拟客户数据
+        const mockCustomers = [
+            {
+                id: 1,
+                name: '张伟',
+                phone: '13800138001',
+                company: '苏州电力设备公司',
+                lastContact: '2小时前',
+                status: 'active',
+                statusText: '活跃',
+                messages: 15,
+                source: '名片扫码'
+            },
+            {
+                id: 2,
+                name: '李明',
+                phone: '13800138002',
+                company: '南京轨道交通集团',
+                lastContact: '1天前',
+                status: 'pending',
+                statusText: '待跟进',
+                messages: 8,
+                source: '朋友推荐'
+            },
+            {
+                id: 3,
+                name: '王芳',
+                phone: '13800138003',
+                company: '上海医疗器械有限公司',
+                lastContact: '3天前',
+                status: 'converted',
+                statusText: '已成交',
+                messages: 23,
+                source: '官网咨询'
+            },
+            {
+                id: 4,
+                name: '陈强',
+                phone: '13800138004',
+                company: '杭州新能源科技',
+                lastContact: '5天前',
+                status: 'active',
+                statusText: '活跃',
+                messages: 12,
+                source: '展会交流'
+            },
+            {
+                id: 5,
+                name: '刘慧',
+                phone: '13800138005',
+                company: '无锡自动化设备公司',
+                lastContact: '1周前',
+                status: 'pending',
+                statusText: '待跟进',
+                messages: 6,
+                source: '微信群'
+            }
+        ];
+        
+        let currentCustomers = [];
+        let filteredCustomers = [];
+        
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCustomers();
+        });
+        
+        // 加载客户数据
+        function loadCustomers() {
+            currentCustomers = mockCustomers;
+            filteredCustomers = [...currentCustomers];
+            renderCustomers();
+        }
+        
+        // 渲染客户列表
+        function renderCustomers() {
+            const customerList = document.getElementById('customerList');
+            customerList.innerHTML = '';
+            
+            filteredCustomers.forEach(customer => {
+                const customerCard = createCustomerCard(customer);
+                customerList.appendChild(customerCard);
+            });
+        }
+        
+        // 创建客户卡片
+        function createCustomerCard(customer) {
+            const card = document.createElement('div');
+            card.className = 'customer-card';
+            
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold mr-3">
+                            ${customer.name.charAt(0)}
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-800">${customer.name}</div>
+                            <div class="text-sm text-gray-500">${customer.company}</div>
+                        </div>
+                    </div>
+                    <span class="status-badge status-${customer.status}">
+                        ${customer.statusText}
+                    </span>
+                </div>
+                
+                <div class="flex items-center text-sm text-gray-600 mb-3">
+                    <i class="fas fa-phone mr-2"></i>${customer.phone}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-clock mr-1"></i>${customer.lastContact}
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center text-sm text-gray-500">
+                        <i class="fas fa-comments mr-1"></i>${customer.messages} 条对话
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-tag mr-1"></i>${customer.source}
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="secondary-btn" onclick="callCustomer('${customer.phone}')">
+                            <i class="fas fa-phone mr-1"></i>拨打
+                        </button>
+                        <button class="action-btn" onclick="viewChatHistory(${customer.id})">
+                            <i class="fas fa-comments mr-1"></i>对话
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // 搜索客户
+        function searchCustomers() {
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            filteredCustomers = currentCustomers.filter(customer => 
+                customer.name.toLowerCase().includes(searchTerm) ||
+                customer.phone.includes(searchTerm) ||
+                customer.company.toLowerCase().includes(searchTerm)
+            );
+            
+            renderCustomers();
+        }
+        
+        // 查看对话历史
+        function viewChatHistory(customerId) {
+            window.location.href = `chat-history.html?customerId=${customerId}`;
+        }
+        
+        // 拨打电话
+        function callCustomer(phone) {
+            window.location.href = `tel:${phone}`;
+        }
+        
+        // 刷新数据
+        function refreshData() {
+            loadCustomers();
+        }
+        
+        // 导出客户
+        function exportCustomers() {
+            alert('客户数据导出功能开发中...');
+        }
+        
+        // 加载更多客户
+        function loadMoreCustomers() {
+            alert('加载更多客户功能开发中...');
+        }
+    </script>
+</body>
+</html> 

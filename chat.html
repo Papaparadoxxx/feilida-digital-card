@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=yes">
+    
+    <!-- 微信分享配置 -->
+    <meta property="og:title" content="AI智能助手 - 江苏稳不落配线器材">
+    <meta property="og:description" content="专业配线器材咨询，智能问答服务">
+    <meta property="og:image" content="https://your-domain.com/chat-preview.jpg">
+    
+    <title>AI智能助手 - 潘杰</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+        
+        .chat-container {
+            background: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1e3f73 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message.assistant {
+            justify-content: flex-start;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.user .message-content {
+            background: #007AFF;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .message.assistant .message-content {
+            background: #e5e5e7;
+            color: #000;
+            border-bottom-left-radius: 6px;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 8px;
+            background: #007AFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .assistant .message-avatar {
+            background: #4CAF50;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #8e8e93;
+            margin: 4px 16px;
+            text-align: center;
+        }
+        
+        .chat-input-container {
+            background: white;
+            padding: 12px 16px;
+            border-top: 1px solid #e5e5e7;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        .chat-input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            min-height: 36px;
+            max-height: 100px;
+            padding: 8px 12px;
+            border: 1px solid #d1d1d6;
+            border-radius: 18px;
+            background: #f2f2f7;
+            resize: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        
+        .chat-input:focus {
+            border-color: #007AFF;
+            background: white;
+        }
+        
+        .send-button {
+            width: 36px;
+            height: 36px;
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .send-button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+        
+        .send-button:disabled {
+            background: #c7c7cc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-reply {
+            background: #e5e5e7;
+            color: #007AFF;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        
+        .quick-reply:hover {
+            background: #d1d1d6;
+            border-color: #007AFF;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #8e8e93;
+            font-size: 14px;
+            margin-left: 48px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #8e8e93;
+            border-radius: 50%;
+            animation: typingDots 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingDots {
+            0%, 60%, 100% { transform: scale(0.8); opacity: 0.5; }
+            30% { transform: scale(1); opacity: 1; }
+        }
+        
+        .business-card {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1e3f73 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .business-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+        }
+        
+        .business-card-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2c5aa0;
+            font-weight: bold;
+        }
+        
+        .conversation-starters {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .starter-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e5e7;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .starter-card:hover {
+            border-color: #007AFF;
+            transform: translateY(-1px);
+        }
+        
+        .starter-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #007AFF;
+        }
+        
+        .starter-text {
+            font-size: 14px;
+            color: #1c1c1e;
+            font-weight: 500;
+        }
+        
+        .lead-form-trigger {
+            background: linear-gradient(135deg, #34C759 0%, #30B351 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 8px 0;
+        }
+        
+        .lead-form-trigger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .conversation-starters {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-replies {
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+            
+            .quick-reply {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 聊天头部 -->
+        <div class="chat-header">
+            <div class="flex items-center">
+                <button onclick="goBack()" class="mr-3 text-white">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="business-card-avatar">
+                    <span>AI</span>
+                </div>
+                <div class="ml-3">
+                    <div id="assistantTitle" class="font-semibold">潘杰的智能助手</div>
+                    <div id="assistantSubtitle" class="text-xs opacity-90">配线器材专业顾问</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="showBusinessCard()" class="text-white">
+                    <i class="fas fa-id-card"></i>
+                </button>
+                <button onclick="shareChat()" class="text-white">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 聊天消息区域 -->
+        <div id="chatMessages" class="chat-messages">
+            <!-- 欢迎消息 -->
+            <div class="message assistant">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div>您好！我是潘杰的智能助手，专业为您提供配线器材咨询服务。</div>
+                    <div class="mt-2">我可以帮您了解：</div>
+                    <ul class="mt-2 space-y-1 text-sm">
+                        <li>• 产品规格与应用场景</li>
+                        <li>• 技术方案与报价</li>
+                        <li>• 项目合作与服务</li>
+                        <li>• 公司资质与案例</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 业务名片 -->
+            <div class="business-card" onclick="window.location.href='index.html'">
+                <div class="business-card-avatar">潘杰</div>
+                <div class="flex-1">
+                    <div class="font-semibold">潘杰 - 总经理</div>
+                    <div class="text-sm opacity-90">江苏稳不落配线器材有限公司</div>
+                    <div class="text-xs opacity-80">专业配线器材解决方案</div>
+                </div>
+                <div class="text-white opacity-80">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            
+            <!-- 对话引导 -->
+            <div id="conversationStarters" class="conversation-starters">
+                <!-- 对话启动卡片将通过JavaScript动态生成 -->
+            </div>
+            
+            <!-- 线索收集按钮 -->
+            <button class="lead-form-trigger" onclick="window.location.href='form.html'">
+                <i class="fas fa-clipboard-list mr-2"></i>
+                留下需求，获取专业方案
+            </button>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="chat-input-container">
+            <!-- 快速回复 -->
+            <div class="quick-replies" id="quickReplies">
+                <!-- 快速回复按钮将通过JavaScript动态生成 -->
+            </div>
+            
+            <!-- 输入框 -->
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="messageInput" 
+                    class="chat-input" 
+                    placeholder="请输入您的问题..."
+                    rows="1"
+                    onkeydown="handleKeyDown(event)"
+                    oninput="adjustTextarea()"
+                ></textarea>
+                <button id="sendButton" class="send-button" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let conversationHistory = [];
+        let isTyping = false;
+        let isEmployeeMode = false;
+        
+        // LLM API配置 - 需要替换为客户的实际API
+        const LLM_API_CONFIG = {
+            endpoint: 'https://your-llm-api.com/chat',
+            apiKey: 'your-api-key',
+            model: 'your-model-name'
+        };
+        
+        // 检测用户身份
+        function detectUserRole() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const referrer = document.referrer;
+            
+            // 通过URL参数检测
+            if (urlParams.get('role') === 'employee') {
+                isEmployeeMode = true;
+                return;
+            }
+            
+            // 通过来源页面检测
+            if (referrer.includes('index-employee.html')) {
+                isEmployeeMode = true;
+                return;
+            }
+            
+            // 默认为客户模式
+            isEmployeeMode = false;
+        }
+        
+        // 获取系统提示词
+        function getSystemPrompt() {
+            if (isEmployeeMode) {
+                return `你是江苏稳不落配线器材有限公司的智能工作助手，专门为员工潘杰提供工作管理和业务支持。
+
+公司信息：
+- 公司：江苏稳不落配线器材有限公司
+- 成立时间：2010年
+- 经营理念：以科技改变生活，用服务回馈社会
+- 主要业务：电力、轨道交通、医疗、航空、新能源、电子信息及自动化设备行业的电气连接技术研发与生产
+- 公司数据：14年生产经验，5000+产品种类，9000+服务客户
+- 地址：江苏省昆山市熊庄路25号
+
+你的任务：
+1. 帮助管理和跟进客户信息
+2. 分析客户需求和购买意向
+3. 提供业务数据分析和报表
+4. 协助制定销售策略和跟进计划
+5. 提醒重要的客户回访和任务
+6. 协助处理客户投诉和问题
+7. 提供行业信息和竞争对手分析
+
+回答风格：
+- 专业、高效、简洁
+- 关注数据分析和业务指标
+- 提供具体的操作建议
+- 帮助提高工作效率`;
+            } else {
+                return `你是江苏稳不落配线器材有限公司的智能销售助手，代表总经理潘杰为客户提供专业咨询服务。
+
+公司信息：
+- 公司：江苏稳不落配线器材有限公司
+- 成立时间：2010年
+- 经营理念：以科技改变生活，用服务回馈社会
+- 主要业务：电力、轨道交通、医疗、航空、新能源、电子信息及自动化设备行业的电气连接技术研发与生产
+- 公司数据：14年生产经验，5000+产品种类，9000+服务客户
+- 地址：江苏省昆山市熊庄路25号
+- 联系方式：13382517080
+
+你的任务：
+1. 专业回答配线器材相关问题
+2. 识别客户需求和购买意向
+3. 适时引导客户留下联系信息
+4. 提供技术方案和报价咨询
+5. 推荐相关产品和服务
+
+回答风格：
+- 专业、友好、简洁
+- 突出公司优势和专业性
+- 适时询问客户具体需求
+- 引导客户进行深入沟通`;
+            }
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // 显示用户消息
+            addMessage('user', message);
+            input.value = '';
+            adjustTextarea();
+            
+            // 显示打字指示器
+            showTypingIndicator();
+            
+            try {
+                // 调用LLM API
+                const response = await callLLMAPI(message);
+                hideTypingIndicator();
+                addMessage('assistant', response);
+                
+                // 检查是否需要收集线索
+                checkForLeadCollection(response);
+                
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('assistant', '抱歉，我暂时无法回答您的问题。请稍后重试或直接联系我们的销售人员。');
+                console.error('LLM API Error:', error);
+            }
+            
+            // 滚动到底部
+            scrollToBottom();
+        }
+        
+        // 调用LLM API
+        async function callLLMAPI(message) {
+            // 构建对话历史
+            const messages = [
+                {
+                    role: 'system',
+                    content: getSystemPrompt()
+                },
+                ...conversationHistory.slice(-10), // 保留最近10轮对话
+                {
+                    role: 'user',
+                    content: message
+                }
+            ];
+            
+            // 这里需要替换为实际的LLM API调用
+            // 临时使用模拟响应
+            return simulateLLMResponse(message);
+            
+            /* 实际API调用示例：
+            const response = await fetch(LLM_API_CONFIG.endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${LLM_API_CONFIG.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: LLM_API_CONFIG.model,
+                    messages: messages,
+                    temperature: 0.7,
+                    max_tokens: 1000
+                })
+            });
+            
+            const data = await response.json();
+            return data.choices[0].message.content;
+            */
+        }
+        
+        // 模拟LLM响应（开发阶段使用）
+        function simulateLLMResponse(message) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    let responses;
+                    let defaultResponse;
+                    
+                    if (isEmployeeMode) {
+                        // 员工版响应
+                        responses = {
+                            '客户管理': '我可以帮您管理客户信息。目前系统中有156个客户，其中89个待跟进。您想查看哪个客户的详细信息，或者需要我提醒您今天的跟进任务？',
+                            '业务分析': '根据最新数据，本周新增线索156个，转化率约18%。电力行业客户咨询量最高，建议重点关注。需要我为您生成详细的业务分析报告吗？',
+                            '客户跟进': '今天您有5个客户需要跟进：张伟（苏州电力）、李明（南京轨道交通）等。我已经为您准备了跟进话术和客户历史记录。',
+                            '数据报表': '我可以生成各类业务报表：客户转化报表、行业分析报表、月度业绩报表等。您需要哪种报表？',
+                            '任务提醒': '您今天的重要任务：1）回复王芳的技术方案 2）准备明天的客户拜访资料 3）整理本周的销售数据。需要我协助处理吗？',
+                            '竞争分析': '我可以为您分析竞争对手的产品优势和市场策略，帮您制定更有效的销售策略。您想了解哪个竞争对手的情况？'
+                        };
+                        defaultResponse = '您好！我是您的工作助手，可以帮您管理客户信息、分析业务数据、制定跟进计划等。请告诉我您需要什么帮助？';
+                    } else {
+                        // 客户版响应
+                        responses = {
+                            '产品规格': '我们公司拥有5000+种产品规格，涵盖电力、轨道交通、医疗、航空等多个领域。请告诉我您的具体应用场景，我可以为您推荐最合适的产品。',
+                            '技术方案': '我们有专业的技术团队，14年的行业经验，可以为您提供定制化的技术解决方案。请描述一下您的项目需求，我来为您量身定制方案。',
+                            '报价': '报价需要根据您的具体需求来确定。请提供：1）产品型号或规格 2）数量要求 3）项目时间 4）技术要求。我会为您提供最优惠的价格。',
+                            '成功案例': '我们已服务9000+客户，涵盖各行各业。您可以查看我们的案例展示页面，或者告诉我您所在的行业，我为您介绍相关案例。',
+                            '联系方式': '您可以直接联系我们的总经理潘杰：📞 13382517080 📧 19081676@qq.com 🏢 江苏省昆山市熊庄路25号。我也可以为您安排专业的技术对接。'
+                        };
+                        defaultResponse = '感谢您的咨询！我们是专业的配线器材供应商，拥有14年生产经验。请告诉我您的具体需求，我会为您提供最合适的解决方案。';
+                    }
+                    
+                    // 简单的关键词匹配
+                    let response = defaultResponse;
+                    
+                    for (const [key, value] of Object.entries(responses)) {
+                        if (message.includes(key)) {
+                            response = value;
+                            break;
+                        }
+                    }
+                    
+                    resolve(response);
+                }, 1000 + Math.random() * 1000); // 1-2秒延迟
+            });
+        }
+        
+        // 添加消息到聊天界面
+        function addMessage(type, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = content;
+            
+            if (type === 'user') {
+                messageDiv.appendChild(messageContent);
+                messageDiv.appendChild(avatar);
+            } else {
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // 添加到对话历史
+            conversationHistory.push({ role: type === 'user' ? 'user' : 'assistant', content });
+            
+            scrollToBottom();
+        }
+        
+        // 显示打字指示器
+        function showTypingIndicator() {
+            if (isTyping) return;
+            isTyping = true;
+            
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <span>AI正在思考</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            scrollToBottom();
+        }
+        
+        // 隐藏打字指示器
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            isTyping = false;
+        }
+        
+        // 发送快速消息
+        function sendQuickMessage(message) {
+            const input = document.getElementById('messageInput');
+            input.value = message;
+            sendMessage();
+        }
+        
+        // 检查是否需要收集线索
+        function checkForLeadCollection(response) {
+            const leadTriggers = ['报价', '方案', '合作', '联系', '需求'];
+            
+            // 检查响应是否包含线索收集触发词
+            const shouldCollectLead = leadTriggers.some(trigger => 
+                response.includes(trigger)
+            );
+            
+            if (shouldCollectLead) {
+                setTimeout(() => {
+                    const leadFormTrigger = document.querySelector('.lead-form-trigger');
+                    if (leadFormTrigger) {
+                        leadFormTrigger.style.display = 'block';
+                        leadFormTrigger.classList.add('highlight');
+                    }
+                }, 2000);
+            }
+        }
+        
+        // 生成快速回复按钮
+        function generateQuickReplies() {
+            const quickReplies = document.getElementById('quickReplies');
+            let buttons;
+            
+            if (isEmployeeMode) {
+                buttons = [
+                    { text: '客户管理', message: '客户管理' },
+                    { text: '业务分析', message: '业务分析' },
+                    { text: '客户跟进', message: '客户跟进' },
+                    { text: '数据报表', message: '数据报表' }
+                ];
+            } else {
+                buttons = [
+                    { text: '产品目录', message: '产品目录' },
+                    { text: '技术支持', message: '技术支持' },
+                    { text: '联系方式', message: '联系方式' },
+                    { text: '合作流程', message: '合作流程' }
+                ];
+            }
+            
+            quickReplies.innerHTML = '';
+            buttons.forEach(button => {
+                const quickReply = document.createElement('div');
+                quickReply.className = 'quick-reply';
+                quickReply.textContent = button.text;
+                quickReply.onclick = () => sendQuickMessage(button.message);
+                quickReplies.appendChild(quickReply);
+            });
+        }
+        
+        // 更新页面标题
+        function updatePageTitle() {
+            const title = document.getElementById('assistantTitle');
+            const subtitle = document.getElementById('assistantSubtitle');
+            
+            if (isEmployeeMode) {
+                title.textContent = '潘杰的工作助手';
+                subtitle.textContent = '客户管理·业务分析·工作提醒';
+            } else {
+                title.textContent = '潘杰的智能助手';
+                subtitle.textContent = '配线器材专业顾问';
+            }
+        }
+        
+        // 生成对话启动卡片
+        function generateConversationStarters() {
+            const starters = document.getElementById('conversationStarters');
+            let cards;
+            
+            if (isEmployeeMode) {
+                cards = [
+                    { icon: '👥', text: '客户管理', message: '我想查看客户信息' },
+                    { icon: '📊', text: '业务分析', message: '帮我分析本周业务数据' },
+                    { icon: '⏰', text: '任务提醒', message: '今天有哪些重要任务' },
+                    { icon: '📈', text: '竞争分析', message: '分析竞争对手情况' }
+                ];
+            } else {
+                cards = [
+                    { icon: '📋', text: '产品规格', message: '我想了解产品规格' },
+                    { icon: '🔧', text: '技术方案', message: '请提供技术方案' },
+                    { icon: '💰', text: '获取报价', message: '我需要报价' },
+                    { icon: '📈', text: '成功案例', message: '查看成功案例' }
+                ];
+            }
+            
+            starters.innerHTML = '';
+            cards.forEach(card => {
+                const starterCard = document.createElement('div');
+                starterCard.className = 'starter-card';
+                starterCard.onclick = () => sendQuickMessage(card.message);
+                
+                starterCard.innerHTML = `
+                    <div class="starter-icon">${card.icon}</div>
+                    <div class="starter-text">${card.text}</div>
+                `;
+                
+                starters.appendChild(starterCard);
+            });
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检测用户身份
+            detectUserRole();
+            
+            // 更新页面标题
+            updatePageTitle();
+            
+            // 生成快速回复按钮
+            generateQuickReplies();
+            
+            // 生成对话启动卡片
+            generateConversationStarters();
+            
+            // 根据用户身份显示不同的欢迎消息
+            setTimeout(() => {
+                if (isEmployeeMode) {
+                    addMessage('assistant', '您好！我是您的工作助手，可以帮您管理客户信息、分析业务数据、制定跟进计划等。请告诉我您需要什么帮助？');
+                } else {
+                    addMessage('assistant', '您好！欢迎来到江苏稳不落配线器材有限公司。我是销售助手，可以为您介绍我们的产品和服务。请问有什么可以帮助您的吗？');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

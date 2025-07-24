@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成功案例 - 销售获客平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .case-card {
+            transition: all 0.3s ease;
+        }
+        .case-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background: #1890FF;
+            color: white;
+        }
+        .filter-dropdown {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .filter-dropdown.open {
+            max-height: 200px;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .case-card:hover .video-overlay {
+            opacity: 1;
+        }
+        .play-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .play-button:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm px-4 py-3 sticky top-0 z-10">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <button onclick="goBack()" class="text-gray-600 hover:text-blue-500">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <span class="font-semibold text-gray-800">成功案例</span>
+            </div>
+            <button onclick="toggleSearch()" class="text-gray-600 hover:text-blue-500">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 搜索栏 -->
+    <div id="searchBar" class="hidden bg-white border-b border-gray-200 px-4 py-3">
+        <div class="flex items-center space-x-2">
+            <input type="text" id="searchInput" placeholder="搜索案例..." 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+            <button onclick="searchCases()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                搜索
+            </button>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-md mx-auto bg-white min-h-screen">
+        <!-- 筛选标签 -->
+        <div class="p-4 bg-white border-b border-gray-200">
+            <div class="flex space-x-2 mb-3">
+                <button onclick="filterByIndustry('all')" 
+                        class="tab-button active px-4 py-2 rounded-full text-sm font-medium border border-gray-300 hover:border-blue-500">
+                    全部
+                </button>
+                <button onclick="filterByIndustry('manufacture')" 
+                        class="tab-button px-4 py-2 rounded-full text-sm font-medium border border-gray-300 hover:border-blue-500">
+                    制造业
+                </button>
+                <button onclick="filterByIndustry('finance')" 
+                        class="tab-button px-4 py-2 rounded-full text-sm font-medium border border-gray-300 hover:border-blue-500">
+                    金融
+                </button>
+                <button onclick="filterByIndustry('ecommerce')" 
+                        class="tab-button px-4 py-2 rounded-full text-sm font-medium border border-gray-300 hover:border-blue-500">
+                    电商
+                </button>
+            </div>
+            
+            <!-- 地区筛选 -->
+            <div class="relative">
+                <button onclick="toggleFilter()" 
+                        class="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-blue-500 transition">
+                    <i class="fas fa-map-marker-alt text-gray-500"></i>
+                    <span>地区筛选</span>
+                    <i class="fas fa-chevron-down text-gray-500"></i>
+                </button>
+                <div id="filterDropdown" class="filter-dropdown absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    <div class="p-3">
+                        <button onclick="filterByLocation('all')" class="block w-full text-left px-3 py-2 hover:bg-gray-100 rounded">全部地区</button>
+                        <button onclick="filterByLocation('beijing')" class="block w-full text-left px-3 py-2 hover:bg-gray-100 rounded">北京</button>
+                        <button onclick="filterByLocation('shanghai')" class="block w-full text-left px-3 py-2 hover:bg-gray-100 rounded">上海</button>
+                        <button onclick="filterByLocation('guangzhou')" class="block w-full text-left px-3 py-2 hover:bg-gray-100 rounded">广州</button>
+                        <button onclick="filterByLocation('shenzhen')" class="block w-full text-left px-3 py-2 hover:bg-gray-100 rounded">深圳</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 案例列表 -->
+        <div id="casesList" class="p-4 space-y-4">
+            <!-- 案例卡片 1 -->
+            <div class="case-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" 
+                 data-industry="manufacture" data-location="beijing">
+                <div class="relative">
+                    <img src="https://via.placeholder.com/400x200/1890FF/FFFFFF?text=制造业案例视频" 
+                         alt="制造业案例" class="w-full h-48 object-cover">
+                    <div class="video-overlay">
+                        <button onclick="playVideo('case1')" class="play-button">
+                            <i class="fas fa-play text-blue-500 text-xl ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs">制造业</span>
+                    </div>
+                    <div class="absolute bottom-3 right-3">
+                        <span class="bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">02:30</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-800 mb-2">某大型制造企业数字化转型案例</h3>
+                    <p class="text-sm text-gray-600 mb-3">通过AI智能化改造，帮助企业提升生产效率30%，降低成本20%，实现了全面的数字化转型。</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-map-marker-alt text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">北京</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-play text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">1.2k</span>
+                            </div>
+                        </div>
+                        <button onclick="viewCaseDetail('case1')" class="text-blue-500 text-sm hover:text-blue-600">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 案例卡片 2 -->
+            <div class="case-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" 
+                 data-industry="finance" data-location="shanghai">
+                <div class="relative">
+                    <img src="https://via.placeholder.com/400x200/52C41A/FFFFFF?text=金融业案例视频" 
+                         alt="金融业案例" class="w-full h-48 object-cover">
+                    <div class="video-overlay">
+                        <button onclick="playVideo('case2')" class="play-button">
+                            <i class="fas fa-play text-blue-500 text-xl ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-green-500 text-white px-2 py-1 rounded-full text-xs">金融</span>
+                    </div>
+                    <div class="absolute bottom-3 right-3">
+                        <span class="bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">03:15</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-800 mb-2">金融科技公司风控系统优化</h3>
+                    <p class="text-sm text-gray-600 mb-3">基于大数据和机器学习技术，构建智能风控系统，风险识别准确率提升至95%。</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-map-marker-alt text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">上海</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-play text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">856</span>
+                            </div>
+                        </div>
+                        <button onclick="viewCaseDetail('case2')" class="text-blue-500 text-sm hover:text-blue-600">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 案例卡片 3 -->
+            <div class="case-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" 
+                 data-industry="ecommerce" data-location="guangzhou">
+                <div class="relative">
+                    <img src="https://via.placeholder.com/400x200/FA8C16/FFFFFF?text=电商案例视频" 
+                         alt="电商案例" class="w-full h-48 object-cover">
+                    <div class="video-overlay">
+                        <button onclick="playVideo('case3')" class="play-button">
+                            <i class="fas fa-play text-blue-500 text-xl ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-orange-500 text-white px-2 py-1 rounded-full text-xs">电商</span>
+                    </div>
+                    <div class="absolute bottom-3 right-3">
+                        <span class="bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">01:45</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-800 mb-2">电商平台智能推荐系统</h3>
+                    <p class="text-sm text-gray-600 mb-3">打造个性化推荐引擎，用户点击率提升40%，转化率增长25%，显著提升用户体验。</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-map-marker-alt text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">广州</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-play text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">674</span>
+                            </div>
+                        </div>
+                        <button onclick="viewCaseDetail('case3')" class="text-blue-500 text-sm hover:text-blue-600">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 案例卡片 4 -->
+            <div class="case-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" 
+                 data-industry="manufacture" data-location="shenzhen">
+                <div class="relative">
+                    <img src="https://via.placeholder.com/400x200/722ED1/FFFFFF?text=制造业案例视频2" 
+                         alt="制造业案例2" class="w-full h-48 object-cover">
+                    <div class="video-overlay">
+                        <button onclick="playVideo('case4')" class="play-button">
+                            <i class="fas fa-play text-blue-500 text-xl ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-purple-500 text-white px-2 py-1 rounded-full text-xs">制造业</span>
+                    </div>
+                    <div class="absolute bottom-3 right-3">
+                        <span class="bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">04:20</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-800 mb-2">智能制造生产线改造项目</h3>
+                    <p class="text-sm text-gray-600 mb-3">运用IoT和AI技术，实现智能化生产监控，产品质量提升15%，生产周期缩短20%。</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-map-marker-alt text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">深圳</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-play text-gray-400 text-sm"></i>
+                                <span class="text-sm text-gray-600">923</span>
+                            </div>
+                        </div>
+                        <button onclick="viewCaseDetail('case4')" class="text-blue-500 text-sm hover:text-blue-600">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载更多 -->
+        <div class="p-4 text-center">
+            <button onclick="loadMore()" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition">
+                <i class="fas fa-plus mr-2"></i>加载更多案例
+            </button>
+        </div>
+
+        <!-- 底部导航 -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+            <div class="max-w-md mx-auto flex">
+                <button onclick="goToPage('index.html')" class="flex-1 py-3 flex flex-col items-center text-gray-400">
+                    <i class="fas fa-home mb-1"></i>
+                    <span class="text-xs">名片</span>
+                </button>
+                <button class="flex-1 py-3 flex flex-col items-center text-blue-500">
+                    <i class="fas fa-play-circle mb-1"></i>
+                    <span class="text-xs">案例</span>
+                </button>
+                <button onclick="goToPage('chat.html')" class="flex-1 py-3 flex flex-col items-center text-gray-400">
+                    <i class="fas fa-robot mb-1"></i>
+                    <span class="text-xs">AI咨询</span>
+                </button>
+                <button onclick="goToPage('profile.html')" class="flex-1 py-3 flex flex-col items-center text-gray-400">
+                    <i class="fas fa-user mb-1"></i>
+                    <span class="text-xs">我的</span>
+                </button>
+            </div>
+        </nav>
+    </main>
+
+    <!-- 视频播放模态框 -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-4 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">案例视频</h3>
+                <button onclick="closeVideoModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="video-container bg-gray-900 rounded-lg">
+                <video id="caseVideo" class="w-full h-48 object-cover rounded-lg" controls>
+                    <source src="#" type="video/mp4">
+                    您的浏览器不支持视频播放
+                </video>
+            </div>
+            <div class="mt-4 flex space-x-3">
+                <button onclick="goToPage('chat.html')" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+                    <i class="fas fa-comments mr-2"></i>咨询详情
+                </button>
+                <button onclick="goToPage('form.html')" class="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition">
+                    <i class="fas fa-calendar-alt mr-2"></i>预约演示
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentIndustry = 'all';
+        let currentLocation = 'all';
+
+        // 行业筛选
+        function filterByIndustry(industry) {
+            currentIndustry = industry;
+            
+            // 更新标签状态
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 筛选案例
+            filterCases();
+        }
+
+        // 地区筛选
+        function filterByLocation(location) {
+            currentLocation = location;
+            
+            // 关闭下拉菜单
+            document.getElementById('filterDropdown').classList.remove('open');
+            
+            // 筛选案例
+            filterCases();
+        }
+
+        // 筛选案例
+        function filterCases() {
+            const cases = document.querySelectorAll('.case-card');
+            
+            cases.forEach(caseCard => {
+                const industry = caseCard.getAttribute('data-industry');
+                const location = caseCard.getAttribute('data-location');
+                
+                const matchIndustry = currentIndustry === 'all' || industry === currentIndustry;
+                const matchLocation = currentLocation === 'all' || location === currentLocation;
+                
+                if (matchIndustry && matchLocation) {
+                    caseCard.style.display = 'block';
+                    caseCard.classList.add('fade-in');
+                } else {
+                    caseCard.style.display = 'none';
+                }
+            });
+        }
+
+        // 切换筛选下拉菜单
+        function toggleFilter() {
+            const dropdown = document.getElementById('filterDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        // 切换搜索栏
+        function toggleSearch() {
+            const searchBar = document.getElementById('searchBar');
+            searchBar.classList.toggle('hidden');
+            
+            if (!searchBar.classList.contains('hidden')) {
+                document.getElementById('searchInput').focus();
+            }
+        }
+
+        // 搜索案例
+        function searchCases() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const cases = document.querySelectorAll('.case-card');
+            
+            cases.forEach(caseCard => {
+                const title = caseCard.querySelector('h3').textContent.toLowerCase();
+                const description = caseCard.querySelector('p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm) || searchTerm === '') {
+                    caseCard.style.display = 'block';
+                } else {
+                    caseCard.style.display = 'none';
+                }
+            });
+        }
+
+        // 播放视频
+        function playVideo(caseId) {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('caseVideo');
+            
+            // 这里可以根据caseId设置不同的视频源
+            // video.src = `videos/${caseId}.mp4`;
+            
+            modal.classList.remove('hidden');
+            video.focus();
+        }
+
+        // 关闭视频模态框
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('caseVideo');
+            
+            modal.classList.add('hidden');
+            video.pause();
+            video.currentTime = 0;
+        }
+
+        // 查看案例详情
+        function viewCaseDetail(caseId) {
+            // 这里可以跳转到详情页面或显示详情弹窗
+            alert(`查看案例详情：${caseId}`);
+        }
+
+        // 加载更多案例
+        function loadMore() {
+            // 模拟加载更多数据
+            alert('正在加载更多案例...');
+        }
+
+        // 页面跳转
+        function goToPage(page) {
+            window.location.href = page;
+        }
+
+        // 返回上一页
+        function goBack() {
+            window.history.back();
+        }
+
+        // 点击外部关闭下拉菜单
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('filterDropdown');
+            const filterButton = event.target.closest('button');
+            
+            if (!filterButton || !filterButton.onclick || filterButton.onclick.toString().indexOf('toggleFilter') === -1) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // 监听搜索输入
+        document.getElementById('searchInput')?.addEventListener('input', function() {
+            searchCases();
+        });
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            // 初始化筛选
+            filterCases();
+        });
+    </script>
+</body>
+</html> 

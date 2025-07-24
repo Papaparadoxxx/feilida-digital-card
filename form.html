@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留下联系方式 - 销售获客平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active {
+            background: #1890FF;
+            color: white;
+        }
+        .step-indicator.completed {
+            background: #52C41A;
+            color: white;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .floating-label {
+            position: relative;
+        }
+        .floating-label input:focus + label,
+        .floating-label input:not(:placeholder-shown) + label {
+            transform: translateY(-20px) scale(0.8);
+            background: white;
+            padding: 0 4px;
+            color: #1890FF;
+        }
+        .floating-label label {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            color: #9CA3AF;
+        }
+        .success-animation {
+            animation: bounceIn 0.6s ease;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .slide-in {
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="bg-white shadow-sm px-4 py-3 sticky top-0 z-10">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <button onclick="goBack()" class="text-gray-600 hover:text-blue-500">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <span class="font-semibold text-gray-800">联系信息</span>
+            </div>
+            <div class="text-sm text-gray-500">
+                <span id="stepIndicator">1/3</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 进度条 -->
+    <div class="bg-white px-4 py-2">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+                <div class="step-indicator active w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                <span class="text-sm text-gray-600">个人信息</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200">2</div>
+                <span class="text-sm text-gray-600">公司信息</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200">3</div>
+                <span class="text-sm text-gray-600">项目需求</span>
+            </div>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="progressBar" class="progress-bar bg-blue-500 h-2 rounded-full" style="width: 33.33%"></div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-md mx-auto bg-white min-h-screen">
+        <form id="leadForm" class="p-6">
+            <!-- 第一步：个人信息 -->
+            <div id="step1" class="form-step active">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">个人信息</h2>
+                    <p class="text-sm text-gray-600">请填写您的基本信息，我们会有专业顾问联系您</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="floating-label">
+                        <input type="text" id="name" name="name" placeholder=" " required
+                               class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <label for="name">姓名 *</label>
+                    </div>
+
+                    <div class="floating-label">
+                        <input type="tel" id="phone" name="phone" placeholder=" " required
+                               class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <label for="phone">手机号 *</label>
+                    </div>
+
+                    <div class="floating-label">
+                        <input type="email" id="email" name="email" placeholder=" "
+                               class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <label for="email">邮箱</label>
+                    </div>
+
+                    <div class="floating-label">
+                        <input type="text" id="position" name="position" placeholder=" "
+                               class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <label for="position">职位</label>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button type="button" onclick="nextStep()" 
+                            class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-medium">
+                        下一步
+                    </button>
+                </div>
+            </div>
+
+            <!-- 第二步：公司信息 -->
+            <div id="step2" class="form-step">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">公司信息</h2>
+                    <p class="text-sm text-gray-600">了解您的公司背景，为您提供更精准的服务</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="floating-label">
+                        <input type="text" id="company" name="company" placeholder=" " required
+                               class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <label for="company">公司名称 *</label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">公司规模</label>
+                        <select id="companySize" name="companySize" required
+                                class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">请选择</option>
+                            <option value="1-10">1-10人</option>
+                            <option value="11-50">11-50人</option>
+                            <option value="51-100">51-100人</option>
+                            <option value="101-500">101-500人</option>
+                            <option value="500+">500人以上</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">所在行业</label>
+                        <select id="industry" name="industry" required
+                                class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">请选择</option>
+                            <option value="制造业">制造业</option>
+                            <option value="金融服务">金融服务</option>
+                            <option value="电子商务">电子商务</option>
+                            <option value="教育培训">教育培训</option>
+                            <option value="医疗健康">医疗健康</option>
+                            <option value="房地产">房地产</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">所在地区</label>
+                        <select id="location" name="location" required
+                                class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">请选择</option>
+                            <option value="北京">北京</option>
+                            <option value="上海">上海</option>
+                            <option value="广州">广州</option>
+                            <option value="深圳">深圳</option>
+                            <option value="杭州">杭州</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex space-x-3">
+                    <button type="button" onclick="prevStep()" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium">
+                        上一步
+                    </button>
+                    <button type="button" onclick="nextStep()" 
+                            class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-medium">
+                        下一步
+                    </button>
+                </div>
+            </div>
+
+            <!-- 第三步：项目需求 -->
+            <div id="step3" class="form-step">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">项目需求</h2>
+                    <p class="text-sm text-gray-600">详细了解您的项目需求，为您制定最佳方案</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">项目类型</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                                <input type="radio" name="projectType" value="数字化转型" class="text-blue-500">
+                                <span class="text-sm">数字化转型</span>
+                            </label>
+                            <label class="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                                <input type="radio" name="projectType" value="AI应用" class="text-blue-500">
+                                <span class="text-sm">AI应用</span>
+                            </label>
+                            <label class="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                                <input type="radio" name="projectType" value="系统集成" class="text-blue-500">
+                                <span class="text-sm">系统集成</span>
+                            </label>
+                            <label class="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                                <input type="radio" name="projectType" value="其他" class="text-blue-500">
+                                <span class="text-sm">其他</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">预算范围</label>
+                        <select id="budget" name="budget"
+                                class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">请选择</option>
+                            <option value="5万以下">5万以下</option>
+                            <option value="5-10万">5-10万</option>
+                            <option value="10-20万">10-20万</option>
+                            <option value="20-50万">20-50万</option>
+                            <option value="50万以上">50万以上</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">项目周期</label>
+                        <select id="timeline" name="timeline"
+                                class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <option value="">请选择</option>
+                            <option value="1个月内">1个月内</option>
+                            <option value="2-3个月">2-3个月</option>
+                            <option value="3-6个月">3-6个月</option>
+                            <option value="6个月以上">6个月以上</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">详细需求</label>
+                        <textarea id="requirements" name="requirements" rows="4" placeholder="请详细描述您的项目需求..."
+                                  class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex space-x-3">
+                    <button type="button" onclick="prevStep()" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium">
+                        上一步
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-medium">
+                        提交申请
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- 成功页面 -->
+        <div id="successPage" class="hidden p-6 text-center">
+            <div class="success-animation">
+                <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">提交成功！</h2>
+                <p class="text-gray-600 mb-6">感谢您的信任，我们的专业顾问会在24小时内与您联系</p>
+                
+                <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                    <h3 class="font-semibold text-blue-800 mb-2">接下来会发生什么？</h3>
+                    <div class="space-y-2 text-sm text-blue-700">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-clock"></i>
+                            <span>24小时内专业顾问电话联系</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>安排产品演示和需求沟通</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-file-alt"></i>
+                            <span>提供定制化解决方案</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="goToPage('index.html')" 
+                            class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-medium">
+                        返回首页
+                    </button>
+                    <button onclick="goToPage('chat.html')" 
+                            class="w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium">
+                        继续咨询
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        // 更新进度指示器
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const stepIndicator = document.getElementById('stepIndicator');
+            const stepButtons = document.querySelectorAll('.step-indicator');
+            
+            progressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+            stepIndicator.textContent = `${currentStep}/${totalSteps}`;
+            
+            stepButtons.forEach((button, index) => {
+                button.classList.remove('active', 'completed');
+                if (index + 1 === currentStep) {
+                    button.classList.add('active');
+                } else if (index + 1 < currentStep) {
+                    button.classList.add('completed');
+                }
+            });
+        }
+
+        // 显示指定步骤
+        function showStep(step) {
+            document.querySelectorAll('.form-step').forEach(stepDiv => {
+                stepDiv.classList.remove('active');
+            });
+            document.getElementById(`step${step}`).classList.add('active');
+            document.getElementById(`step${step}`).classList.add('slide-in');
+        }
+
+        // 下一步
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    showStep(currentStep);
+                    updateProgress();
+                }
+            }
+        }
+
+        // 上一步
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+                updateProgress();
+            }
+        }
+
+        // 验证当前步骤
+        function validateCurrentStep() {
+            const currentStepDiv = document.getElementById(`step${currentStep}`);
+            const requiredFields = currentStepDiv.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    field.classList.remove('border-red-500');
+                }
+            });
+            
+            // 手机号格式验证
+            if (currentStep === 1) {
+                const phoneInput = document.getElementById('phone');
+                const phonePattern = /^1[3-9]\d{9}$/;
+                if (phoneInput.value && !phonePattern.test(phoneInput.value)) {
+                    phoneInput.classList.add('border-red-500');
+                    alert('请输入正确的手机号码');
+                    isValid = false;
+                }
+            }
+            
+            if (!isValid) {
+                alert('请填写所有必填项');
+            }
+            
+            return isValid;
+        }
+
+        // 表单提交
+        document.getElementById('leadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateCurrentStep()) {
+                // 模拟表单提交
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+                
+                console.log('提交的数据:', data);
+                
+                // 显示成功页面
+                document.querySelector('form').style.display = 'none';
+                document.getElementById('successPage').classList.remove('hidden');
+                
+                // 模拟发送数据到服务器
+                // 这里可以添加实际的API调用
+                setTimeout(() => {
+                    alert('数据已保存到系统');
+                }, 1000);
+            }
+        });
+
+        // 页面跳转
+        function goToPage(page) {
+            window.location.href = page;
+        }
+
+        // 返回上一页
+        function goBack() {
+            window.history.back();
+        }
+
+        // 实时验证
+        document.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('input', function() {
+                if (this.classList.contains('border-red-500')) {
+                    this.classList.remove('border-red-500');
+                }
+            });
+        });
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            updateProgress();
+            
+            // 焦点到第一个输入框
+            document.getElementById('name').focus();
+        });
+    </script>
+</body>
+</html> 
