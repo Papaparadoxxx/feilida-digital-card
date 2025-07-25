@@ -8,26 +8,31 @@
     <!-- 微信分享配置 -->
     <meta property="og:title" content="潘杰 - 飞力达数字名片">
     <meta property="og:description" content="江苏飞力达国际物流股份有限公司总经理，点击查看我们的专业物流服务案例！">
-    <meta property="og:image" content="https://papaparadoxxx.github.io/feilida-digital-card/card-share.jpg">
+    <meta property="og:image" content="https://feilida-digital-card.vercel.app/card-share.jpg">
     <meta property="og:image:width" content="400">
     <meta property="og:image:height" content="300">
-    <meta property="og:url" content="https://papaparadoxxx.github.io/feilida-digital-card/index-client.html">
+    <meta property="og:url" content="https://feilida-digital-card.vercel.app/index-client.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="飞力达数字名片">
     
     <!-- 增强微信识别 -->
     <meta name="title" content="潘杰 - 飞力达数字名片">
     <meta name="description" content="江苏飞力达国际物流股份有限公司总经理，点击查看我们的专业物流服务案例！">
-    <meta name="image" content="https://papaparadoxxx.github.io/feilida-digital-card/card-share.jpg">
+    <meta name="image" content="https://feilida-digital-card.vercel.app/card-share.jpg">
+    
+    <!-- 微信专用标签 -->
+    <meta itemprop="name" content="潘杰 - 飞力达数字名片">
+    <meta itemprop="description" content="江苏飞力达国际物流，专业的国际物流解决方案">
+    <meta itemprop="image" content="https://feilida-digital-card.vercel.app/card-share.jpg">
     
     <!-- Twitter Cards (微信有时会读取) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="潘杰 - 飞力达数字名片">
     <meta name="twitter:description" content="江苏飞力达国际物流股份有限公司总经理，点击查看我们的专业物流服务案例！">
-    <meta name="twitter:image" content="https://papaparadoxxx.github.io/feilida-digital-card/card-share.jpg">
+    <meta name="twitter:image" content="https://feilida-digital-card.vercel.app/card-share.jpg">
     
     <!-- 微信小程序分享 -->
-    <meta name="wxcard:img" content="https://papaparadoxxx.github.io/feilida-digital-card/card-share.jpg">
+    <meta name="wxcard:img" content="https://feilida-digital-card.vercel.app/card-share.jpg">
     <meta name="wxcard:title" content="潘杰 - 飞力达数字名片">
     <meta name="wxcard:desc" content="江苏飞力达国际物流，点击查看服务案例！">
     
@@ -1097,55 +1102,75 @@ END:VCARD`;
             }
         }
 
-        // 微信JS-SDK配置
+        // 微信JS-SDK配置（优化版）
         function initWeChatSDK() {
-            // 获取当前页面URL（不含#及其后面部分）
             const currentUrl = window.location.href.split('#')[0];
             
-            // 从后端获取签名（实际部署时需要替换成真实的签名服务器）
-            fetch(`/api/wechat/sign?url=${encodeURIComponent(currentUrl)}`)
-                .then(response => response.json())
+            // 方案1：尝试从签名服务器获取配置
+            // 生产环境需要将localhost:5000替换为实际的签名服务器地址
+            const signServerUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:5000/api/wechat/sign'
+                : '/api/wechat/sign'; // Vercel等平台的API路由
+            
+            fetch(`${signServerUrl}?url=${encodeURIComponent(currentUrl)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('签名服务器不可用');
+                    return response.json();
+                })
                 .then(data => {
-                    wx.config({
-                        debug: false, // 生产环境设为false
-                        appId: data.appId,
-                        timestamp: data.timestamp,
-                        nonceStr: data.nonceStr,
-                        signature: data.signature,
-                        jsApiList: [
-                            'updateAppMessageShareData',
-                            'updateTimelineShareData',
-                            'onMenuShareAppMessage',
-                            'onMenuShareTimeline'
-                        ]
-                    });
-                    
-                    wx.ready(() => {
-                        // 配置分享到朋友圈
-                        wx.updateTimelineShareData({
-                            title: '潘杰 - 飞力达数字名片',
-                            link: currentUrl,
-                            imgUrl: window.location.origin + '/card-share.jpg'
-                        });
-                        
-                        // 配置分享给朋友
-                        wx.updateAppMessageShareData({
-                            title: '潘杰 - 飞力达数字名片',
-                            desc: '江苏飞力达国际物流 - 专业的国际物流解决方案',
-                            link: currentUrl,
-                            imgUrl: window.location.origin + '/card-share.jpg'
-                        });
-                        
-                        console.log('微信分享配置成功');
-                    });
-                    
-                    wx.error((res) => {
-                        console.error('微信SDK配置失败:', res);
-                    });
+                    console.log('使用签名服务器配置微信SDK');
+                    configureWeChatSDK(data);
                 })
                 .catch(err => {
-                    console.log('微信签名获取失败，可能不在微信环境:', err);
+                    console.log('签名服务器不可用，使用mock配置:', err.message);
+                    // 方案2：Mock配置（仅用于测试，生产环境需要真实签名）
+                    const mockConfig = {
+                        appId: 'wx_demo_app_id', // 测试用占位符
+                        timestamp: Math.floor(Date.now() / 1000),
+                        nonceStr: 'mock_nonce_' + Date.now(),
+                        signature: 'mock_signature_for_testing',
+                        debug: true // 开启调试模式
+                    };
+                    configureWeChatSDK(mockConfig);
                 });
+        }
+        
+        function configureWeChatSDK(config) {
+            wx.config({
+                debug: config.debug || false,
+                appId: config.appId,
+                timestamp: config.timestamp,
+                nonceStr: config.nonceStr,
+                signature: config.signature,
+                jsApiList: [
+                    'updateAppMessageShareData',
+                    'updateTimelineShareData',
+                    'onMenuShareAppMessage',
+                    'onMenuShareTimeline'
+                ]
+            });
+            
+            wx.ready(() => {
+                const shareData = {
+                    title: '潘杰 - 飞力达数字名片',
+                    desc: '江苏飞力达国际物流 - 专业的国际物流解决方案',
+                    link: window.location.href.split('#')[0],
+                    imgUrl: window.location.origin + '/card-share.jpg'
+                };
+                
+                // 配置分享到朋友圈
+                wx.updateTimelineShareData(shareData);
+                
+                // 配置分享给朋友
+                wx.updateAppMessageShareData(shareData);
+                
+                console.log('✅ 微信分享配置成功:', shareData);
+            });
+            
+            wx.error((res) => {
+                console.warn('⚠️ 微信SDK配置失败:', res);
+                console.log('💡 fallback: 将使用meta标签进行分享');
+            });
         }
 
         // 检测是否在微信环境
